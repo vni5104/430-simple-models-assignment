@@ -283,48 +283,57 @@ const notFound = (req, res) => {
   });
 };
 
-// A function to create a new Dog instance
+/*
+  setDogName: create new Dog instance with provided req params
+*/
 const setDogName = async (req, res) => {
+  //return Bad Request error if missing necessary params
   if (!req.body.name || !req.body.breed || !req.body.age) {
     return res.status(400).json({ error: 'name, breed, and age are all required' });
   }
 
+  //store query params in new Dog object
   const dogData = {
     name: req.body.name,
     breed: req.body.breed,
     age: req.body.age
   };
-
   const newDog = new Dog(dogData);
 
   try {
     await newDog.save();
+
+    //success creating dog
     return res.status(201).json({
       name: newDog.name,
       breed: newDog.breed,
       age: newDog.age
     });
   } catch(err) {
+    //error creating dog
     console.log(err);
     return res.status(500).json({error: 'Failed to create Dog'});
   }
 };
 
-// A function to look up a Dog by name
+/*
+  getDog: find dog with given name and update its age
+*/
 const getDog = async (req, res) => {
+  //return Bad Request error if missing name param
   if (!req.query.name) {
     return res.status(400).json({error: 'Name is required to perform a search'});
   }
 
-  console.log(req.query.name);
-
   try {
     const doc = await Dog.findOne({name: req.query.name}).exec();
 
+    //return Not Found error if no dog is found
     if (!doc) {
       return res.status(404).json({error: 'No dog found'});
     }
 
+    //update dog's age if dog is found
     updateDog(req, res);
   } catch(err) {
     console.log(err);
@@ -332,6 +341,9 @@ const getDog = async (req, res) => {
   }
 };
 
+/*
+  updateDog: updates dog's age with provided name param
+*/
 const updateDog = (req, res) => {
   const updatePromise = Dog.findOneAndUpdate(
     { name: req.query.name }, 
@@ -350,12 +362,34 @@ const updateDog = (req, res) => {
   });
 }
 
+/*
+  hostPage4: create view that lists dogs in the database
+*/
+const hostPage4 = async (req, res) => {
+  try {
+    const docs = await Dog.find({}).lean().exec();
+    return res.render('page4', {dogs: docs});
+  } catch(err) {
+    console.log(err);
+
+    //return error for dogs with duplicate names (not allowed by database)
+    if (err.code === 11000) {
+      return res.status(400).json({error: 'A dog with that name already exists'});
+    }
+
+    //return error for server/database failure
+    return res.status(500).json({error: 'Failed to find dogs'});
+  }
+}
+
+
 // export the relevant public controller functions
 module.exports = {
   index: hostIndex,
   page1: hostPage1,
   page2: hostPage2,
   page3: hostPage3,
+  page4: hostPage4,
   getName,
   setName,
   updateLast,
