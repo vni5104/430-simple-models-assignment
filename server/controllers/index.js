@@ -76,7 +76,7 @@ const hostPage1 = async (req, res) => {
     const docs = await Cat.find({}).lean().exec();
 
     // Once we get back the docs array, we can send it to page1.
-    return res.render('page1', { cats: docs });
+    return res.render('page1', { title: 'Page 1', cats: docs });
   } catch (err) {
     /* If our database returns an error, or is unresponsive, we will print that error to
        our console for us to see. We will also send back an error message to the client.
@@ -92,12 +92,12 @@ const hostPage1 = async (req, res) => {
 
 // Function to render the untemplated page2.
 const hostPage2 = (req, res) => {
-  res.render('page2');
+  res.render('page2', {title: 'Page 2'});
 };
 
 // Function to render the untemplated page3.
 const hostPage3 = (req, res) => {
-  res.render('page3');
+  res.render('page3', {title: 'Page 3'});
 };
 
 // Get name will return the name of the last added cat.
@@ -368,7 +368,7 @@ const updateDog = (req, res) => {
 const hostPage4 = async (req, res) => {
   try {
     const docs = await Dog.find({}).lean().exec();
-    return res.render('page4', {dogs: docs});
+    return res.render('page4', {title: 'Page 4', dogs: docs});
   } catch(err) {
     console.log(err);
 
