@@ -1,8 +1,8 @@
 // pull in our models. This will automatically load the index.js from that folder
 const models = require('../models');
 
-// get the Cat model
-const { Cat } = models;
+// get the Cat and Dog models
+const { Cat, Dog } = models;
 
 // Function to handle rendering the index page.
 const hostIndex = async (req, res) => {
@@ -283,6 +283,73 @@ const notFound = (req, res) => {
   });
 };
 
+// A function to create a new Dog instance
+const setDogName = async (req, res) => {
+  if (!req.body.name || !req.body.breed || !req.body.age) {
+    return res.status(400).json({ error: 'name, breed, and age are all required' });
+  }
+
+  const dogData = {
+    name: req.body.name,
+    breed: req.body.breed,
+    age: req.body.age
+  };
+
+  const newDog = new Dog(dogData);
+
+  try {
+    await newDog.save();
+    return res.status(201).json({
+      name: newDog.name,
+      breed: newDog.breed,
+      age: newDog.age
+    });
+  } catch(err) {
+    console.log(err);
+    return res.status(500).json({error: 'Failed to create Dog'});
+  }
+};
+
+// A function to look up a Dog by name
+const getDog = async (req, res) => {
+  if (!req.query.name) {
+    return res.status(400).json({error: 'Name is required to perform a search'});
+  }
+
+  console.log(req.query.name);
+
+  try {
+    const doc = await Dog.findOne({name: req.query.name}).exec();
+
+    if (!doc) {
+      return res.status(404).json({error: 'No dog found'});
+    }
+
+    updateDog(req, res);
+  } catch(err) {
+    console.log(err);
+    return res.status(500).json({error: 'Something went wrong'});
+  }
+};
+
+const updateDog = (req, res) => {
+  const updatePromise = Dog.findOneAndUpdate(
+    { name: req.query.name }, 
+    { $inc: {age: 1} },
+    { returnDocument: 'after', sort: {createdDate: 'descending'} }
+  ).lean().exec();
+
+  updatePromise.then((doc) => res.json({
+    name: doc.name,
+    breed: doc.breed,
+    age: doc.age
+  }))
+  .catch((err) => {
+    console.log(err);
+    return res.status(500).json({error: 'Something went wrong'});
+  });
+}
+
 // export the relevant public controller functions
 module.exports = {
   index: hostIndex,
@@ -293,5 +360,7 @@ module.exports = {
   setName,
   updateLast,
   searchName,
+  setDogName,
+  getDog,
   notFound,
 };

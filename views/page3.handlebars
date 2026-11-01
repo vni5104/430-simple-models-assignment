@@ -16,11 +16,9 @@
   <a href="/page2">Page 2</a>
 
   <!-- form for creating new Dog instance -->
-  <form action="/setDogName">
-    <label for="firstname">First Name: </label>
-    <input type="text" name="firstname">
-    <label for="lastname">Last Name: </label>
-    <input type="text" name="lastname">
+  <form action="/setDogName" method="POST">
+    <label for="name">Name: </label>
+    <input type="text" name="name">
     <label for="breed">Breed: </label>
     <input type="text" name="breed">
     <label for="age">Age: </label>
